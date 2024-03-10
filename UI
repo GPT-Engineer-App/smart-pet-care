@@ -1,0 +1,100 @@
+import React, { useState } from "react";
+import { Box, Button, Container, Divider, FormControl, FormLabel, Heading, Input, Stack, Text, useToast, VStack } from "@chakra-ui/react";
+import { FaSignInAlt, FaUserPlus } from "react-icons/fa";
+
+const Index = () => {
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const toast = useToast();
+  const backendURL = "https://backengine-g8ef.fly.dev";
+
+  const handleHealthCheck = async () => {
+    try {
+      const response = await fetch(`${backendURL}/healthcheck`);
+      if (response.ok) {
+        toast({ title: "Health Check Successful", status: "success" });
+      } else {
+        toast({ title: "Health Check Failed", status: "error" });
+      }
+    } catch (error) {
+      toast({ title: "Network Error", status: "error" });
+    }
+  };
+
+  const handleSignup = async () => {
+    try {
+      const response = await fetch(`${backendURL}/signup`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ email, password }),
+      });
+
+      if (response.status === 204) {
+        toast({ title: "Signup Successful", status: "success" });
+      } else {
+        const errorData = await response.json();
+        toast({ title: errorData.error, status: "error" });
+      }
+    } catch (error) {
+      toast({ title: "Signup Error", status: "error" });
+    }
+  };
+
+  const handleLogin = async () => {
+    try {
+      const response = await fetch(`${backendURL}/login`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ email, password }),
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        localStorage.setItem("accessToken", data.accessToken);
+        toast({ title: "Login Successful", status: "success" });
+      } else {
+        const errorData = await response.json();
+        toast({ title: errorData.error, status: "error" });
+      }
+    } catch (error) {
+      toast({ title: "Login Error", status: "error" });
+    }
+  };
+
+  return (
+    <Container centerContent>
+      <VStack spacing={8} marginY={12}>
+        <Heading>Welcome to Interactive API</Heading>
+        <Text>Use the form below to sign up or log in to your account.</Text>
+        <Button onClick={handleHealthCheck}>Check API Health</Button>
+
+        <Divider />
+
+        <Stack spacing={4} width="100%" maxWidth="md">
+          <FormControl id="email">
+            <FormLabel>Email address</FormLabel>
+            <Input type="email" value={email} onChange={(e) => setEmail(e.target.value)} />
+          </FormControl>
+          <FormControl id="password">
+            <FormLabel>Password</FormLabel>
+            <Input type="password" value={password} onChange={(e) => setPassword(e.target.value)} />
+          </FormControl>
+          <Stack direction="row" spacing={4} justify="center">
+            <Button leftIcon={<FaUserPlus />} colorScheme="blue" onClick={handleSignup}>
+              Signup
+            </Button>
+            <Button leftIcon={<FaSignInAlt />} colorScheme="green" onClick={handleLogin}>
+              Login
+            </Button>
+          </Stack>
+        </Stack>
+      </VStack>
+    </Container>
+  );
+};
+
+export default Index;
